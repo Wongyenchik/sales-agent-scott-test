@@ -1,6 +1,6 @@
 # Plan: Outlook AI Agent for Mandatory SAP API Retrieval Before Reply Draft
 
-## 1. Project Objective
+## 1. Project Objective 
 
 Build an Outlook AI Agent as an Outlook Add-in that allows a user to open an email, select an agent button, let the system read the current email context, retrieve required business information from SAP through a company-provided API, and generate a suggested email reply for the user to review and send manually.
 
