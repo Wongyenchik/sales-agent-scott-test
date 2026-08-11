@@ -1,0 +1,5 @@
+# Deployed on Vercel — ignore local-only noise
+.env
+**/__pycache__/
+*.pyc
+.vercel

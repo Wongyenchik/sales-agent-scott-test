@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sales Agent Outlook</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link rel="stylesheet" href="./taskpane.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <div class="brand">Sales Agent</div>
+        <div id="status" class="status">Waiting for Outlook...</div>
+      </header>
+
+      <section id="chatLog" class="chat-log" aria-live="polite">
+        <article class="bubble assistant">
+          <div class="role">Assistant</div>
+          <div class="content">
+            Loading the selected email and showing the key details here.
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="./taskpane.js"></script>
+  </body>
+</html>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+           xsi:type="MailApp">
+  <Id>1fcb9a10-0b34-42a5-95f0-01eb6c4a8a56</Id>
+  <Version>1.0.2.0</Version>
+  <ProviderName>Avnet</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Sales Agent Draft"/>
+  <Description DefaultValue="Generate SAP-backed reply drafts from the current Outlook email."/>
+  <IconUrl DefaultValue="https://raw.githubusercontent.com/OfficeDev/Office-Add-in-samples/main/Samples/hello-world/images/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://raw.githubusercontent.com/OfficeDev/Office-Add-in-samples/main/Samples/hello-world/images/icon-128.png"/>
+  <SupportUrl DefaultValue="https://learn.microsoft.com/office/dev/add-ins/"/>
+
+  <AppDomains>
+    <AppDomain>https://sales-agent-scott-test.vercel.app</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.8"/>
+    </Sets>
+  </Requirements>
+
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://sales-agent-scott-test.vercel.app/outlook/taskpane.html"/>
+        <RequestedHeight>450</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.8">
+          <bt:Set Name="Mailbox"/>
+        </bt:Sets>
+      </Requirements>
+
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <DesktopFormFactor>
+            <FunctionFile resid="Commands.Url"/>
+
+            <ExtensionPoint xsi:type="MessageReadCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="SalesAgent.Group">
+                  <Label resid="SalesAgent.GroupLabel"/>
+                  <Control xsi:type="Button" id="SalesAgent.OpenPane">
+                    <Label resid="SalesAgent.ButtonLabel"/>
+                    <Supertip>
+                      <Title resid="SalesAgent.ButtonLabel"/>
+                      <Description resid="SalesAgent.ButtonTooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Icon.16"/>
+                      <bt:Image size="32" resid="Icon.32"/>
+                      <bt:Image size="80" resid="Icon.80"/>
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="Taskpane.Url"/>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+
+      <Resources>
+        <bt:Images>
+          <bt:Image id="Icon.16" DefaultValue="https://raw.githubusercontent.com/OfficeDev/Office-Add-in-samples/main/Samples/hello-world/images/icon-16.png"/>
+          <bt:Image id="Icon.32" DefaultValue="https://raw.githubusercontent.com/OfficeDev/Office-Add-in-samples/main/Samples/hello-world/images/icon-32.png"/>
+          <bt:Image id="Icon.80" DefaultValue="https://raw.githubusercontent.com/OfficeDev/Office-Add-in-samples/main/Samples/hello-world/images/icon-80.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="Commands.Url" DefaultValue="https://sales-agent-scott-test.vercel.app/outlook/commands.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://sales-agent-scott-test.vercel.app/outlook/taskpane.html"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="SalesAgent.GroupLabel" DefaultValue="Sales Agent"/>
+          <bt:String id="SalesAgent.ButtonLabel" DefaultValue="Generate SAP Draft"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="SalesAgent.ButtonTooltip" DefaultValue="Open Sales Agent and generate a backend SAP-validated reply draft."/>
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>
