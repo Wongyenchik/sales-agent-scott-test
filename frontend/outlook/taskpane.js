@@ -83,6 +83,49 @@ function getAttachmentsAsync(item) {
   });
 }
 
+function normalizeAttachment(attachment) {
+  if (!attachment) {
+    return null;
+  }
+
+  return {
+    id: attachment.id || attachment.attachmentId || "",
+    name: attachment.name || attachment.displayName || "Unnamed attachment",
+    contentType: attachment.contentType || "",
+    attachmentType: attachment.attachmentType || ""
+  };
+}
+
+function dedupeAttachments(attachments) {
+  const seen = new Set();
+  const deduped = [];
+
+  for (const attachment of attachments) {
+    const key = `${attachment.id}|${attachment.name}|${attachment.contentType}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(attachment);
+    }
+  }
+
+  return deduped;
+}
+
+async function collectAttachments(item) {
+  const fromItemArray = (Array.isArray(item.attachments) ? item.attachments : [])
+    .map(normalizeAttachment)
+    .filter(Boolean);
+
+  let fromAsyncApi = [];
+  try {
+    fromAsyncApi = (await getAttachmentsAsync(item)).map(normalizeAttachment).filter(Boolean);
+  } catch {
+    fromAsyncApi = [];
+  }
+
+  return dedupeAttachments([...fromItemArray, ...fromAsyncApi]);
+}
+
 function getAttachmentContentAsync(item, attachmentId) {
   return new Promise((resolve, reject) => {
     if (typeof item.getAttachmentContentAsync !== "function") {
@@ -224,7 +267,7 @@ async function loadEmailContext() {
   const senderName = item.from?.displayName || "Unknown sender";
   const senderEmail = item.from?.emailAddress || "";
   const subject = item.subject || "(no subject)";
-  const attachments = await getAttachmentsAsync(item);
+  const attachments = await collectAttachments(item);
 
   currentEmailContext = {
     messageId: item.itemId || `outlook-${Date.now()}`,
@@ -247,16 +290,32 @@ async function loadEmailContext() {
   if (attachments.length === 0) {
     addFieldBubble("Attachments", "No attachments");
   } else {
+    addFieldBubble("Attachment count", String(attachments.length));
     addFieldBubble(
       "Attachments",
-      attachments.map((attachment) => `${attachment.name || attachment.displayName || "Unnamed attachment"} (${attachment.contentType || "unknown type"})`).join("\n")
+      attachments.map((attachment) => `${attachment.name || "Unnamed attachment"} (${attachment.contentType || "unknown type"})`).join("\n")
     );
 
     for (const attachment of attachments) {
-      const attachmentContent = await getAttachmentContentAsync(item, attachment.id || attachment.attachmentId);
+      if (!attachment.id) {
+        renderFileBubble(
+          attachmentTypeLabel(attachment),
+          attachment,
+          "Attachment ID is not available in this Outlook host, so raw content cannot be fetched here."
+        );
+        continue;
+      }
+
+      let attachmentContent;
+      try {
+        attachmentContent = await getAttachmentContentAsync(item, attachment.id);
+      } catch {
+        attachmentContent = null;
+      }
+
       const attachmentRecord = {
-        id: attachment.id || attachment.attachmentId || "",
-        name: attachment.name || attachment.displayName || "Attachment",
+        id: attachment.id || "",
+        name: attachment.name || "Attachment",
         contentType: attachment.contentType || "",
         format: attachmentContent?.format || "",
         content: attachmentContent?.content || ""
@@ -266,11 +325,15 @@ async function loadEmailContext() {
       window.salesAgentEmailContext = currentEmailContext;
 
       if (!attachmentContent) {
-        renderFileBubble(attachmentTypeLabel(attachment), attachment, "Attachment content is unavailable in this Outlook context.");
+        renderFileBubble(
+          attachmentTypeLabel(attachment),
+          attachment,
+          "Attachment content is unavailable in this Outlook context."
+        );
         continue;
       }
 
-      const attachmentName = attachment.name || attachment.displayName || "Attachment";
+      const attachmentName = attachment.name || "Attachment";
       const attachmentContentType = String(attachment.contentType || "").toLowerCase();
 
       if (attachmentContentFormatIsImage(attachmentContent, attachmentContentType)) {
