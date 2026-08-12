@@ -83,6 +83,25 @@ body {
   align-items: start;
 }
 
+.user-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-bubble {
+  max-width: 86%;
+  background: #cfe8ff;
+  color: #1b2b43;
+  border: 1px solid #b4d8ff;
+  border-radius: 14px;
+  padding: 9px 12px;
+  font-size: 0.87rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+  animation: rise 150ms ease-out;
+}
+
 .avatar {
   width: 30px;
   height: 30px;

@@ -21,6 +21,11 @@ function clearAssistantThread() {
   els.assistantThread.replaceChildren();
 }
 
+function clearUserRows() {
+  const userRows = els.chatLog.querySelectorAll(".user-row");
+  userRows.forEach((row) => row.remove());
+}
+
 function appendLine(text, className = "line") {
   const node = document.createElement("div");
   node.className = className;
@@ -32,6 +37,19 @@ function appendLine(text, className = "line") {
 function appendField(title, value) {
   appendLine(title, "line line-title");
   appendLine(value || "(empty)", "line line-meta");
+}
+
+function appendUserBubble(text) {
+  const row = document.createElement("article");
+  row.className = "message-row user-row";
+
+  const bubble = document.createElement("div");
+  bubble.className = "user-bubble";
+  bubble.textContent = text;
+
+  row.appendChild(bubble);
+  els.chatLog.appendChild(row);
+  scrollChatToBottom();
 }
 
 function toBase64BlobUrl(base64, contentType) {
@@ -205,6 +223,7 @@ async function loadEmailContext() {
     throw new Error("No Outlook email item is currently available.");
   }
 
+  clearUserRows();
   clearAssistantThread();
   appendLine("Selected email loaded.");
 
@@ -307,8 +326,13 @@ function handlePromptSubmit(event) {
     return;
   }
 
-  appendField("User prompt", prompt);
-  appendLine("Prompt captured. Backend handoff can use this together with the email context.", "line line-meta");
+  appendUserBubble(prompt);
+
+  if (currentEmailContext) {
+    currentEmailContext.userPrompt = prompt;
+    window.salesAgentEmailContext = currentEmailContext;
+  }
+
   els.promptInput.value = "";
 }
 
