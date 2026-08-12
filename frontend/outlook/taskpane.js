@@ -1,6 +1,10 @@
 const els = {
   status: document.getElementById("status"),
-  chatLog: document.getElementById("chatLog")
+  chatLog: document.getElementById("chatLog"),
+  assistantThread: document.getElementById("assistantThread"),
+  promptForm: document.getElementById("promptForm"),
+  promptInput: document.getElementById("promptInput"),
+  sendButton: document.getElementById("sendButton")
 };
 
 let currentEmailContext = null;
@@ -9,45 +13,25 @@ function setStatus(text) {
   els.status.textContent = text;
 }
 
-function addBubble(role, text) {
-  const article = document.createElement("article");
-  article.className = "bubble assistant";
-
-  const roleNode = document.createElement("div");
-  roleNode.className = "role";
-  roleNode.textContent = role;
-
-  const content = document.createElement("div");
-  content.className = "content";
-  content.textContent = text;
-
-  article.appendChild(roleNode);
-  article.appendChild(content);
-  els.chatLog.appendChild(article);
+function scrollChatToBottom() {
   els.chatLog.scrollTop = els.chatLog.scrollHeight;
 }
 
-function addFieldBubble(title, value) {
-  const article = document.createElement("article");
-  article.className = "bubble assistant";
+function clearAssistantThread() {
+  els.assistantThread.replaceChildren();
+}
 
-  const roleNode = document.createElement("div");
-  roleNode.className = "role";
-  roleNode.textContent = "Assistant";
+function appendLine(text, className = "line") {
+  const node = document.createElement("div");
+  node.className = className;
+  node.textContent = text;
+  els.assistantThread.appendChild(node);
+  scrollChatToBottom();
+}
 
-  const fieldNode = document.createElement("div");
-  fieldNode.className = "field";
-  fieldNode.textContent = title;
-
-  const valueNode = document.createElement("div");
-  valueNode.className = "value";
-  valueNode.textContent = value || "(empty)";
-
-  article.appendChild(roleNode);
-  article.appendChild(fieldNode);
-  article.appendChild(valueNode);
-  els.chatLog.appendChild(article);
-  els.chatLog.scrollTop = els.chatLog.scrollHeight;
+function appendField(title, value) {
+  appendLine(title, "line line-title");
+  appendLine(value || "(empty)", "line line-meta");
 }
 
 function toBase64BlobUrl(base64, contentType) {
@@ -143,24 +127,12 @@ function getAttachmentContentAsync(item, attachmentId) {
   });
 }
 
-function renderImageBubble(title, attachment, dataUrl) {
-  const article = document.createElement("article");
-  article.className = "bubble assistant";
+function appendImageAttachment(title, attachment, dataUrl) {
+  appendLine(title, "line line-title");
+  appendLine(`${attachment.name || attachment.displayName || "Image"} (${attachment.contentType || "unknown type"})`, "line line-meta");
 
-  const roleNode = document.createElement("div");
-  roleNode.className = "role";
-  roleNode.textContent = "Assistant";
-
-  const fieldNode = document.createElement("div");
-  fieldNode.className = "field";
-  fieldNode.textContent = title;
-
-  const valueNode = document.createElement("div");
-  valueNode.className = "value";
-
-  const metaNode = document.createElement("div");
-  metaNode.className = "value";
-  metaNode.textContent = `${attachment.name || attachment.displayName || "Image"} (${attachment.contentType || "unknown type"})`;
+  const wrap = document.createElement("div");
+  wrap.className = "image-wrap";
 
   const image = document.createElement("img");
   image.src = dataUrl;
@@ -174,39 +146,16 @@ function renderImageBubble(title, attachment, dataUrl) {
   link.className = "attachment-link";
   link.textContent = "Open image";
 
-  valueNode.appendChild(metaNode);
-  valueNode.appendChild(image);
-  valueNode.appendChild(link);
-
-  article.appendChild(roleNode);
-  article.appendChild(fieldNode);
-  article.appendChild(valueNode);
-  els.chatLog.appendChild(article);
-  els.chatLog.scrollTop = els.chatLog.scrollHeight;
+  wrap.appendChild(image);
+  wrap.appendChild(link);
+  els.assistantThread.appendChild(wrap);
+  scrollChatToBottom();
 }
 
-function renderFileBubble(title, attachment, content) {
-  const article = document.createElement("article");
-  article.className = "bubble assistant";
-
-  const roleNode = document.createElement("div");
-  roleNode.className = "role";
-  roleNode.textContent = "Assistant";
-
-  const fieldNode = document.createElement("div");
-  fieldNode.className = "field";
-  fieldNode.textContent = title;
-
-  const valueNode = document.createElement("div");
-  valueNode.className = "value";
-
-  const metaNode = document.createElement("div");
-  metaNode.className = "value";
-  metaNode.textContent = `${attachment.name || attachment.displayName || "Attachment"} (${attachment.contentType || "unknown type"})`;
-
-  const contentNode = document.createElement("div");
-  contentNode.className = "value";
-  contentNode.textContent = content || "(no preview available)";
+function appendFileAttachment(title, attachment, content) {
+  appendLine(title, "line line-title");
+  appendLine(`${attachment.name || attachment.displayName || "Attachment"} (${attachment.contentType || "unknown type"})`, "line line-meta");
+  appendLine(content || "(no preview available)", "line line-meta");
 
   const link = document.createElement("a");
   link.className = "attachment-link";
@@ -221,15 +170,8 @@ function renderFileBubble(title, attachment, content) {
     link.textContent = "File preview unavailable";
   }
 
-  valueNode.appendChild(metaNode);
-  valueNode.appendChild(contentNode);
-  valueNode.appendChild(link);
-
-  article.appendChild(roleNode);
-  article.appendChild(fieldNode);
-  article.appendChild(valueNode);
-  els.chatLog.appendChild(article);
-  els.chatLog.scrollTop = els.chatLog.scrollHeight;
+  els.assistantThread.appendChild(link);
+  scrollChatToBottom();
 }
 
 function getBodyText(item) {
@@ -263,6 +205,9 @@ async function loadEmailContext() {
     throw new Error("No Outlook email item is currently available.");
   }
 
+  clearAssistantThread();
+  appendLine("Selected email loaded.");
+
   const bodyText = await getBodyText(item);
   const senderName = item.from?.displayName || "Unknown sender";
   const senderEmail = item.from?.emailAddress || "";
@@ -282,23 +227,22 @@ async function loadEmailContext() {
 
   window.salesAgentEmailContext = currentEmailContext;
 
-  addBubble("Assistant", "Selected email loaded.");
-  addFieldBubble("Email title", subject);
-  addFieldBubble("Email sender", senderEmail ? `${senderName} <${senderEmail}>` : senderName);
-  addFieldBubble("Email body", bodyText || "(empty body)");
+  appendField("Email title", subject);
+  appendField("Email sender", senderEmail ? `${senderName} <${senderEmail}>` : senderName);
+  appendField("Email body", bodyText || "(empty body)");
 
   if (attachments.length === 0) {
-    addFieldBubble("Attachments", "No attachments");
+    appendField("Attachments", "No attachments");
   } else {
-    addFieldBubble("Attachment count", String(attachments.length));
-    addFieldBubble(
+    appendField("Attachment count", String(attachments.length));
+    appendField(
       "Attachments",
       attachments.map((attachment) => `${attachment.name || "Unnamed attachment"} (${attachment.contentType || "unknown type"})`).join("\n")
     );
 
     for (const attachment of attachments) {
       if (!attachment.id) {
-        renderFileBubble(
+        appendFileAttachment(
           attachmentTypeLabel(attachment),
           attachment,
           "Attachment ID is not available in this Outlook host, so raw content cannot be fetched here."
@@ -325,7 +269,7 @@ async function loadEmailContext() {
       window.salesAgentEmailContext = currentEmailContext;
 
       if (!attachmentContent) {
-        renderFileBubble(
+        appendFileAttachment(
           attachmentTypeLabel(attachment),
           attachment,
           "Attachment content is unavailable in this Outlook context."
@@ -338,13 +282,13 @@ async function loadEmailContext() {
 
       if (attachmentContentFormatIsImage(attachmentContent, attachmentContentType)) {
         const dataUrl = buildDataUrl(attachmentContent, attachmentContentType);
-        renderImageBubble(attachmentTypeLabel(attachment), attachment, dataUrl);
+        appendImageAttachment(attachmentTypeLabel(attachment), attachment, dataUrl);
       } else {
         attachment.downloadUrl = attachmentContent.format === "base64"
           ? toBase64BlobUrl(attachmentContent.content, attachment.contentType)
           : attachmentContent.content || "";
 
-        renderFileBubble(
+        appendFileAttachment(
           attachmentTypeLabel(attachment),
           attachment,
           normalizeAttachmentPreview(attachmentContent, attachmentName)
@@ -354,6 +298,18 @@ async function loadEmailContext() {
   }
 
   setStatus("Email details ready.");
+}
+
+function handlePromptSubmit(event) {
+  event.preventDefault();
+  const prompt = (els.promptInput.value || "").trim();
+  if (!prompt) {
+    return;
+  }
+
+  appendField("User prompt", prompt);
+  appendLine("Prompt captured. Backend handoff can use this together with the email context.", "line line-meta");
+  els.promptInput.value = "";
 }
 
 function attachmentContentFormatIsImage(attachmentContent, attachmentContentType) {
@@ -401,9 +357,14 @@ Office.onReady((info) => {
     return;
   }
 
+  if (els.promptForm) {
+    els.promptForm.addEventListener("submit", handlePromptSubmit);
+  }
+
   setStatus("Reading selected email...");
   loadEmailContext().catch((error) => {
-    addBubble("Assistant", `Read failed: ${error.message}`);
+    clearAssistantThread();
+    appendLine(`Read failed: ${error.message}`);
     setStatus("Read failed.");
   });
 });

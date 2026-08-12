@@ -15,13 +15,30 @@
       </header>
 
       <section id="chatLog" class="chat-log" aria-live="polite">
-        <article class="bubble assistant">
-          <div class="role">Assistant</div>
-          <div class="content">
-            Loading the selected email and showing the key details here.
+        <article class="message-row assistant-row">
+          <div class="avatar" aria-hidden="true">AI</div>
+          <div class="assistant-card">
+            <div class="assistant-name">Assistant</div>
+            <div id="assistantThread" class="assistant-thread">
+              <div class="line">Loading the selected email and showing the key details here.</div>
+            </div>
           </div>
         </article>
       </section>
+
+      <footer class="composer" aria-label="Chat input">
+        <form id="promptForm" class="composer-form">
+          <input
+            id="promptInput"
+            class="prompt-input"
+            type="text"
+            placeholder="Type your prompt about this email..."
+            maxlength="3000"
+            autocomplete="off"
+          />
+          <button id="sendButton" class="send-button" type="submit">Send</button>
+        </form>
+      </footer>
     </main>
 
     <script type="module" src="./taskpane.js"></script>
