@@ -225,7 +225,6 @@ async function loadEmailContext() {
 
   clearUserRows();
   clearAssistantThread();
-  appendLine("Selected email loaded.");
 
   const bodyText = await getBodyText(item);
   const senderName = item.from?.displayName || "Unknown sender";
