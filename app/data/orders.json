@@ -1,0 +1,45 @@
+[
+  {
+    "customer_number": "C10001",
+    "purchase_order_number": "PO-2026-08001",
+    "sales_order_number": "SO-725001",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_number": 10,
+        "customer_part_number": "CON-100-A",
+        "manufacturer_part_number": "MPN-ABC-001",
+        "order_quantity": 500,
+        "confirmed_quantity": 500,
+        "status": "Confirmed",
+        "estimated_ship_date": "2026-08-08"
+      },
+      {
+        "line_number": 20,
+        "customer_part_number": "CON-200-B",
+        "manufacturer_part_number": "MPN-XYZ-002",
+        "order_quantity": 200,
+        "confirmed_quantity": 150,
+        "status": "Partially Confirmed",
+        "estimated_ship_date": "2026-08-12"
+      }
+    ]
+  },
+  {
+    "customer_number": "C10002",
+    "purchase_order_number": "PO-2026-08002",
+    "sales_order_number": "SO-725002",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_number": 10,
+        "customer_part_number": "FAB-100-A",
+        "manufacturer_part_number": "MPN-DEF-003",
+        "order_quantity": 100,
+        "confirmed_quantity": 100,
+        "status": "Shipped",
+        "estimated_ship_date": "2026-08-03"
+      }
+    ]
+  }
+]

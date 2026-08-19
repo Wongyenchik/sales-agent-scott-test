@@ -1,54 +1,68 @@
-Outlook Add-in Integration (Python Backend)
+# Outlook Add-in Integration
 
-This folder contains a minimal Outlook Add-in manifest that opens a task pane UI.
-The task pane reads the currently selected email via Office.js and calls:
+This folder contains a minimal Outlook Add-in manifest that opens the Sales Agent task pane.
+The task pane reads the currently selected email via Office.js and calls the main FastAPI workflow:
 
-POST /api/agent/generate-reply
+```http
+POST http://localhost:8000/api/v1/run
+```
 
-## Deployed test URLs (Vercel)
+The Outlook UI maps the selected message to the existing `EmailRequest` contract:
 
-Production app (frontend + backend + inline mock SAP):
-
-- App: https://sales-agent-scott-test.vercel.app
-- Health: https://sales-agent-scott-test.vercel.app/health
-- Task pane: https://sales-agent-scott-test.vercel.app/outlook/taskpane.html
-- Commands: https://sales-agent-scott-test.vercel.app/outlook/commands.html
-
-`manifest.xml` already points at these HTTPS URLs.
-
-Redeploy after code changes:
-
-```powershell
-cd <repo-root>
-npx vercel@latest deploy --prod
+```json
+{
+   "sender_email": "buyer@contoso.example",
+   "subject": "Order status request",
+   "body": "Could you provide the status of PO-2026-08001?"
+}
 ```
 
 Files
 
 - manifest.xml
-- frontend/outlook/taskpane.html
-- frontend/outlook/taskpane.js
-- frontend/outlook/taskpane.css
-- frontend/outlook/commands.html
+- frontend/taskpane.html
+- frontend/taskpane.js
+- frontend/taskpane.css
+- frontend/commands.html
 
-Run local services first (optional for local-only testing)
+## Run local services first
 
-Terminal 1 (mock API):
+Terminal 1 (FastAPI workflow):
 
-cd <repo-root>\mock-api
-py server.py
+```powershell
+cd <repo-root>
+C:\Users\062359\source\repos\SalesAgent\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+```
 
-Terminal 2 (backend):
+Terminal 2 (frontend host for add-in pages):
 
-cd <repo-root>\backend
-py server.py
-
-Terminal 3 (frontend host for add-in pages):
-
+```powershell
 cd <repo-root>\frontend
-py server.py
+C:\Users\062359\source\repos\SalesAgent\.venv\Scripts\python.exe server.py
+```
 
-Sideload in Outlook on Web (recommended)
+If `py` or `python` is preferred and dependencies are already available, those can be used instead of the full virtual environment path.
+
+## URLs
+
+- FastAPI health: http://localhost:8000/health
+- Workflow API: http://localhost:8000/api/v1/run
+- Task pane: http://localhost:5173/taskpane.html
+- Commands file: http://localhost:5173/commands.html
+
+## Manifest URLs
+
+The checked-in manifest may point to a hosted test URL or to localhost depending on the branch state. For local testing, these entries must resolve to the frontend host or an HTTPS tunnel that forwards to it:
+
+```xml
+<SourceLocation DefaultValue="http://localhost:5173/taskpane.html"/>
+<bt:Url id="Commands.Url" DefaultValue="http://localhost:5173/commands.html"/>
+<bt:Url id="Taskpane.Url" DefaultValue="http://localhost:5173/taskpane.html"/>
+```
+
+If Outlook blocks `http://localhost`, expose the frontend through an HTTPS tunnel and replace the manifest URLs with that HTTPS origin. If the frontend origin changes, set `OUTLOOK_ORIGIN` in `.env` to the same origin so FastAPI CORS allows the request.
+
+## Sideload in Outlook on Web
 
 1. Open Outlook on Web with your account.
 2. Go to Settings > Manage add-ins (or Get Add-ins).
@@ -57,17 +71,33 @@ Sideload in Outlook on Web (recommended)
 5. Select this file:
    <repo-root>\outlook-addin\manifest.xml
 6. Open any email in read mode.
-7. Click the add-in button "Generate SAP Draft".
-8. In task pane:
-   - Leave Backend URL blank (uses the Vercel host automatically)
-   - Click Generate Draft
-   - Click Open Reply Draft to open reply compose with generated text
+7. Click the add-in button "Generate SAP Draft" under the add-in group.
+8. In the task pane, wait for the selected email details to load.
+9. Type a short prompt such as `Generate draft` and click `Send`.
+10. Review the workflow status, understanding result, draft reply, and correlation ID returned by FastAPI.
 
-If you previously sideloaded the localhost manifest, remove that add-in first, then add this updated manifest again.
+## Sideload in New Outlook for Windows
 
-Troubleshooting
+1. Open New Outlook.
+2. Go to Get Add-ins > My add-ins.
+3. Add custom add-in from file.
+4. Select manifest.xml from this folder.
+5. Open a message and click the add-in button.
 
-1. If task pane does not load, open the task pane URL in a browser and confirm HTTPS works.
-2. If draft generation fails, open /health and confirm `"status":"ok"`.
-3. If your tenant blocks custom add-ins, ask M365 admin to allow sideloading.
-4. Vercel free tier can cold-start slowly on the first request after idle time.
+## Test email
+
+Use a message body similar to:
+
+```text
+Could you provide the status of PO-2026-08001?
+```
+
+If the sender is not present in `app/data/customers.json`, the workflow should return `needs_review` after understanding and customer validation. That is expected behavior.
+
+## Troubleshooting
+
+1. If task pane does not load, verify frontend server is running on port 5173.
+2. If draft generation fails, verify FastAPI is running on port 8000.
+3. If the browser console shows a CORS error, verify `OUTLOOK_ORIGIN` matches the task pane origin.
+4. If your tenant blocks custom add-ins, ask the M365 admin to allow sideloading.
+5. Some Outlook environments require HTTPS add-in URLs. If HTTP localhost is blocked, use an HTTPS tunnel URL and update manifest URLs accordingly.

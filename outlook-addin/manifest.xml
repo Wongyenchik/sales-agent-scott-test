@@ -5,7 +5,7 @@
            xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
            xsi:type="MailApp">
   <Id>1fcb9a10-0b34-42a5-95f0-01eb6c4a8a56</Id>
-  <Version>1.0.2.0</Version>
+  <Version>1.0.1.0</Version>
   <ProviderName>Avnet</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Sales Agent Draft"/>
@@ -31,7 +31,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://sales-agent-scott-test.vercel.app/outlook/taskpane.html"/>
+        <SourceLocation DefaultValue="https://sales-agent-scott-test.vercel.app/taskpane.html"/>
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -89,8 +89,8 @@
           <bt:Image id="Icon.80" DefaultValue="https://raw.githubusercontent.com/OfficeDev/Office-Add-in-samples/main/Samples/hello-world/images/icon-80.png"/>
         </bt:Images>
         <bt:Urls>
-          <bt:Url id="Commands.Url" DefaultValue="https://sales-agent-scott-test.vercel.app/outlook/commands.html"/>
-          <bt:Url id="Taskpane.Url" DefaultValue="https://sales-agent-scott-test.vercel.app/outlook/taskpane.html"/>
+          <bt:Url id="Commands.Url" DefaultValue="https://sales-agent-scott-test.vercel.app/commands.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://sales-agent-scott-test.vercel.app/taskpane.html"/>
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="SalesAgent.GroupLabel" DefaultValue="Sales Agent"/>

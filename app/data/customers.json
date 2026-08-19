@@ -1,0 +1,20 @@
+[
+  {
+    "email": "buyer@contoso.example",
+    "customer_number": "C10001",
+    "customer_name": "Contoso Electronics",
+    "is_active": true
+  },
+  {
+    "email": "purchasing@fabrikam.example",
+    "customer_number": "C10002",
+    "customer_name": "Fabrikam Components",
+    "is_active": true
+  },
+  {
+    "email": "inactive@northwind.example",
+    "customer_number": "C10003",
+    "customer_name": "Northwind Trading",
+    "is_active": false
+  }
+]
